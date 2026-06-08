@@ -1,0 +1,11 @@
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    SymPress\WpCliConsole\:
+        resource: '../src/'
+
+    SymPress\WpCliConsole\Application\WpCliRunnerInterface:
+        alias: SymPress\WpCliConsole\Application\WpCliRunner
