@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<ruleset name="SymPress WP-CLI Console MU Plugin">
+    <description>
+        SymPress coding standard audit for the WP-CLI console package.
+    </description>
+
+    <arg name="colors" />
+    <arg value="sp" />
+    <arg name="basepath" value="." />
+
+    <config name="testVersion" value="8.5-" />
+    <config name="text_domain" value="wp-cli-console" />
+
+    <file>wp-cli-console.php</file>
+    <file>src</file>
+
+    <exclude-pattern>vendor/*</exclude-pattern>
+    <exclude-pattern>.phpunit.cache/*</exclude-pattern>
+
+    <rule ref="SymPress-WordPress">
+        <exclude name="Generic.CodeAnalysis.AssignmentInCondition.FoundInWhileCondition" />
+        <exclude name="SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter" />
+        <exclude name="SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable.DisallowedSuperGlobalVariable" />
+        <exclude name="SymPress.Files.LineLength.TooLong" />
+        <exclude name="WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open" />
+        <exclude name="WordPress.Security.ValidatedSanitizedInput.InputNotSanitized" />
+        <exclude name="WordPress.Security.ValidatedSanitizedInput.MissingUnslash" />
+        <exclude name="WordPress.WP.AlternativeFunctions.file_system_operations_fclose" />
+        <exclude name="WordPress.WP.AlternativeFunctions.file_system_operations_fread" />
+    </rule>
+
+    <rule ref="SymPress.Namespaces.Psr4">
+        <properties>
+            <property name="psr4" type="array">
+                <element key="SymPress\WpCliConsole" value="src" />
+            </property>
+        </properties>
+    </rule>
+</ruleset>
