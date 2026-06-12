@@ -16,11 +16,11 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
     ) {
     }
 
-    /**
-     * @param list<string> $arguments
-     */
+    /** @param list<string> $arguments */
     public function run(array $arguments, OutputInterface $output): int
     {
+        $pipes = [];
+
         $process = proc_open(
             $this->command($arguments, $output),
             [
@@ -81,9 +81,7 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
         return 'wp';
     }
 
-    /**
-     * @return array<string, string>
-     */
+    /** @return array<string, string> */
     private function environment(): array
     {
         $environment = getenv();
@@ -98,9 +96,7 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
         return $environment;
     }
 
-    /**
-     * @param resource $pipe
-     */
+    /** @param resource $pipe */
     private function drainPipe(mixed $pipe, string $type, OutputInterface $output): void
     {
         while (($buffer = fread($pipe, 8192)) !== false && $buffer !== '') {
