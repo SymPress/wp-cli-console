@@ -12,12 +12,12 @@
     ],
     "require": {
         "php": "^8.5",
-        "sympress/kernel": "@dev",
+        "sympress/kernel": "dev-main",
         "symfony/console": "^8.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5",
-        "sympress/coding-standards": "@dev"
+        "sympress/coding-standards": "dev-main"
     },
     "autoload": {
         "psr-4": {
