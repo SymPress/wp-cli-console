@@ -5,7 +5,7 @@ services:
         public: false
 
     SymPress\WpCliConsole\:
-        resource: '../src/'
+        resource: '../../src/'
 
     SymPress\WpCliConsole\Application\WpCliRunnerInterface:
         alias: SymPress\WpCliConsole\Application\WpCliRunner
