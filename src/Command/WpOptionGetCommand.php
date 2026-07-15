@@ -22,7 +22,12 @@ final class WpOptionGetCommand extends AbstractWpCliCommand
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $option = (string) $input->getArgument('option');
+        $option = $input->getArgument('option');
+
+        if (!is_string($option)) {
+            throw new \InvalidArgumentException('The option name must be a string.');
+        }
+
         $arguments = ['option', 'get', $option];
         $this->appendOption($arguments, 'format', $input->getOption('format'));
 

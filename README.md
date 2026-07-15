@@ -63,7 +63,7 @@ the global `wp` binary when `vendor/bin/wp` is not executable.
 
 ```bash
 composer install
-composer test
+composer qa
 ```
 
 ## License

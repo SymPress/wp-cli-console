@@ -8,6 +8,7 @@ use SymPress\Kernel\Kernel\KernelInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Process\ExecutableFinder;
 
 final readonly class WpCliRunner implements WpCliRunnerInterface
 {
@@ -19,10 +20,16 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
     /** @param list<string> $arguments */
     public function run(array $arguments, OutputInterface $output): int
     {
+        $command = $this->command($arguments, $output);
+
+        if ($command === null) {
+            return Command::FAILURE;
+        }
+
         $pipes = [];
 
         $process = proc_open(
-            $this->command($arguments, $output),
+            $command,
             [
                 0 => ['pipe', 'r'],
                 1 => ['pipe', 'w'],
@@ -57,11 +64,17 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
 
     /**
      * @param list<string> $arguments
-     * @return list<string>
+     * @return list<string>|null
      */
-    private function command(array $arguments, OutputInterface $output): array
+    private function command(array $arguments, OutputInterface $output): ?array
     {
-        $command = [$this->wpBinary(), ...$arguments];
+        $binary = $this->wpBinary();
+
+        if ($binary === null) {
+            return null;
+        }
+
+        $command = [$binary, ...$arguments];
 
         if (!$output->isDecorated() && !in_array('--no-color', $command, true)) {
             $command[] = '--no-color';
@@ -70,7 +83,7 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
         return $command;
     }
 
-    private function wpBinary(): string
+    private function wpBinary(): ?string
     {
         $binary = sprintf('%s/vendor/bin/wp', $this->kernel->getProjectDir());
 
@@ -78,7 +91,7 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
             return $binary;
         }
 
-        return 'wp';
+        return (new ExecutableFinder())->find('wp');
     }
 
     /** @return array<string, string> */
@@ -86,14 +99,18 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
     {
         $environment = getenv();
 
-        if (!is_array($environment)) {
-            $environment = [];
-        }
-
-        $environment['HTTP_HOST'] = (string) ($_SERVER['HTTP_HOST'] ?? $environment['HTTP_HOST'] ?? 'localhost');
-        $environment['SERVER_NAME'] = (string) ($_SERVER['SERVER_NAME'] ?? $environment['SERVER_NAME'] ?? 'localhost');
+        $environment['HTTP_HOST'] = $this->serverEnvironmentValue('HTTP_HOST', $environment);
+        $environment['SERVER_NAME'] = $this->serverEnvironmentValue('SERVER_NAME', $environment);
 
         return $environment;
+    }
+
+    /** @param array<string, string> $environment */
+    private function serverEnvironmentValue(string $name, array $environment): string
+    {
+        $value = $_SERVER[$name] ?? $environment[$name] ?? 'localhost';
+
+        return is_string($value) ? $value : 'localhost';
     }
 
     /** @param resource $pipe */

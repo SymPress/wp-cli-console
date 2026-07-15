@@ -6,7 +6,7 @@ Thanks for taking the time to improve SymPress WP-CLI Console.
 
 ```bash
 composer install
-composer test
+composer qa
 ```
 
 The package uses PHP 8.5, Symfony Console, WP-CLI, and PHPUnit.
