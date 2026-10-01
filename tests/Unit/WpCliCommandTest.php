@@ -52,6 +52,23 @@ final class WpCliCommandTest extends TestCase
         );
     }
 
+    public function testOptionLookingPositionalValuesNeverReachTheRunner(): void
+    {
+        foreach (['--exec=malicious()', '--require=bad.php', '--ssh=remote', '--path=/bad', '--url=bad', '-x', ' --exec=bad', "bad\0value", ''] as $option) {
+            $runner = new RecordingWpCliRunner();
+            $tester = new CommandTester(new WpOptionGetCommand($runner));
+            try {
+                $tester->execute(['option' => $option]);
+                self::fail('Expected positional validation failure.');
+            } catch (\InvalidArgumentException) {
+                self::assertSame([], $runner->calls);
+            }
+        }
+        $runner = new RecordingWpCliRunner();
+        (new CommandTester(new WpOptionGetCommand($runner)))->execute(['option' => 'normal_option-name']);
+        self::assertSame('normal_option-name', $runner->calls[0][2]);
+    }
+
     public function testMaintenanceCommandsBuildWpCliArguments(): void
     {
         $cacheRunner = new RecordingWpCliRunner();

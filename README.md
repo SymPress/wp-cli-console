@@ -69,3 +69,12 @@ composer qa
 ## License
 
 This package is licensed under `GPL-2.0-or-later`.
+
+## Positional value validation
+
+Externally supplied positional option names are validated before invoking the
+runner: empty/whitespace-only names, NUL, and leading option flags (including
+--exec, --require, --ssh, --path, --url and short flags) are rejected. Legitimate
+underscore/hyphen option names remain accepted. Runner-generated global/options
+arguments continue to be passed as argv entries; shell escaping alone cannot
+prevent WP-CLI global flag injection through an untrusted positional value.
