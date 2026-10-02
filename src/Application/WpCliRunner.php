@@ -28,6 +28,7 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
 
         $pipes = [];
 
+        // phpcs:ignore Generic.PHP.ForbiddenFunctions.Found, WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open -- Native WP-CLI argv bypasses the shell at this single reviewed CLI process boundary.
         $process = proc_open(
             $command,
             [
@@ -44,6 +45,7 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
             return Command::FAILURE;
         }
 
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close private subprocess stdin, not a WordPress file.
         fclose($pipes[0]);
         stream_set_blocking($pipes[1], false);
         stream_set_blocking($pipes[2], false);
@@ -54,7 +56,9 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
             usleep(10000);
         }
 
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close private subprocess stdout, not a WordPress file.
         fclose($pipes[1]);
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Close private subprocess stderr, not a WordPress file.
         fclose($pipes[2]);
 
         $exitCode = proc_close($process);
@@ -108,14 +112,33 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
     /** @param array<string, string> $environment */
     private function serverEnvironmentValue(string $name, array $environment): string
     {
+        // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- CLI host tokens are not WordPress-slashed; strict DNS/IP/port validation below rejects unsafe values.
         $value = $_SERVER[$name] ?? $environment[$name] ?? 'localhost';
 
-        return is_string($value) ? $value : 'localhost';
+        if (!is_string($value) || strlen($value) > 259) {
+            return 'localhost';
+        }
+        if (filter_var($value, FILTER_VALIDATE_IP) !== false) {
+            return $value;
+        }
+        if (
+            preg_match('/^(\[[0-9A-Fa-f:.]+\]|[A-Za-z0-9.-]+)(?::([0-9]{1,5}))?$/D', $value, $parts) !== 1
+            || (isset($parts[2]) && ((int) $parts[2] < 1 || (int) $parts[2] > 65535))
+        ) {
+            return 'localhost';
+        }
+        $host = $parts[1];
+        if (str_starts_with($host, '[')) {
+            return filter_var(substr($host, 1, -1), FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false ? $value : 'localhost';
+        }
+
+        return strlen($host) <= 253 && filter_var($host, FILTER_VALIDATE_DOMAIN, FILTER_FLAG_HOSTNAME) !== false ? $value : 'localhost';
     }
 
     /** @param resource $pipe */
     private function drainPipe(mixed $pipe, string $type, OutputInterface $output): void
     {
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fread -- Drain the private subprocess pipe incrementally; WP_Filesystem cannot read process streams.
         while (($buffer = fread($pipe, 8192)) !== false && $buffer !== '') {
             $this->write($type, $buffer, $output);
         }
