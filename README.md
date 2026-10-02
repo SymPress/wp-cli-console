@@ -70,6 +70,18 @@ composer qa
 
 This package is licensed under `GPL-2.0-or-later`.
 
+## Release archives
+
+The archive workflow and archive check use the reviewed reusable workflow commit
+`177fa0d727b278d2103052ec77c102b4a4c492a0`. Releases install production Composer
+dependencies and include the artifact manifest and checksums. Tests, development
+documentation, QA configuration and coverage output are excluded. Source ZIPs
+also use `.gitattributes` export exclusions. Artifact attestation remains disabled.
+
+Version 1.0.3 prepares a fresh archive with corrected caller permissions; earlier
+tags and published archives retain their original contents. The new archive must
+pass the hosted archive check before it is attached to the release.
+
 ## Positional value validation
 
 Externally supplied positional option names are validated before invoking the
