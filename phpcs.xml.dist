@@ -22,11 +22,6 @@
         <exclude name="SlevomatCodingStandard.Functions.UnusedParameter.UnusedParameter" />
         <exclude name="SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable.DisallowedSuperGlobalVariable" />
         <exclude name="SymPress.Files.LineLength.TooLong" />
-        <exclude name="WordPress.PHP.DiscouragedPHPFunctions.system_calls_proc_open" />
-        <exclude name="WordPress.Security.ValidatedSanitizedInput.InputNotSanitized" />
-        <exclude name="WordPress.Security.ValidatedSanitizedInput.MissingUnslash" />
-        <exclude name="WordPress.WP.AlternativeFunctions.file_system_operations_fclose" />
-        <exclude name="WordPress.WP.AlternativeFunctions.file_system_operations_fread" />
     </rule>
 
     <rule ref="SymPress.Namespaces.Psr4">

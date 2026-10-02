@@ -78,9 +78,18 @@ dependencies and include the artifact manifest and checksums. Tests, development
 documentation, QA configuration and coverage output are excluded. Source ZIPs
 also use `.gitattributes` export exclusions. Artifact attestation remains disabled.
 
-Version 1.0.3 prepares a fresh archive with corrected caller permissions; earlier
+Version 1.0.4 resolves the native-runner Plugin Check findings in a fresh archive; earlier
 tags and published archives retain their original contents. The new archive must
 pass the hosted archive check before it is attached to the release.
+
+The only native process boundary passes a resolved WP-CLI executable and argument
+array to `proc_open()`, with no shell. Its call-specific PHPCS exceptions also
+cover private subprocess pipes; `WP_Filesystem` cannot manage those streams.
+`HTTP_HOST` and `SERVER_NAME` retain valid DNS/IP values and optional TCP ports.
+Invalid values, control characters and URLs fall back to `localhost`; WordPress
+text sanitization or unslashing would change these CLI environment tokens.
+These exceptions travel with the production source and do not disable archive
+checks or unrelated process, filesystem and input-validation checks.
 
 ## Positional value validation
 

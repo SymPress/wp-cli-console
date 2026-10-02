@@ -96,6 +96,66 @@ PHP);
         self::assertSame('global:["cli","info","--no-color"]', $output->fetch());
     }
 
+    public function testItPreservesValidatedHostAndIpEnvironmentValues(): void
+    {
+        $kernel = $this->createStub(KernelInterface::class);
+        $kernel->method('getProjectDir')->willReturn($this->projectWithLocalWpBinary());
+        $runner = new WpCliRunner($kernel);
+        foreach (['localhost', 'shop.example.test:8443', '127.0.0.1:8080', '[2001:db8::1]:443', '::1', 'xn--bcher-kva.example'] as $host) {
+            $_SERVER['HTTP_HOST'] = $host;
+            $_SERVER['SERVER_NAME'] = $host;
+            $output = new BufferedOutput();
+            self::assertSame(7, $runner->run(['cli', 'info'], $output));
+            self::assertStringContainsString($host . '|' . $host, $output->fetch());
+        }
+    }
+
+    public function testItRejectsUnsafeHostEnvironmentValues(): void
+    {
+        $kernel = $this->createStub(KernelInterface::class);
+        $kernel->method('getProjectDir')->willReturn($this->projectWithLocalWpBinary());
+        $runner = new WpCliRunner($kernel);
+        foreach (['user@example.test', 'example.test/path', 'example.test\\path', "example.test\r\nINJECTED=value", "example.test\0", ' example.test', '-bad.example', '[not-an-ip]', 'example.test:0', 'example.test:65536', str_repeat('a', 64) . '.example', str_repeat('a', 260), []] as $host) {
+            $_SERVER['HTTP_HOST'] = $host;
+            $_SERVER['SERVER_NAME'] = $host;
+            $output = new BufferedOutput();
+            self::assertSame(7, $runner->run(['cli', 'info'], $output));
+            self::assertStringContainsString("localhost|localhost\n", $output->fetch());
+        }
+    }
+
+    public function testItValidatesProcessEnvironmentFallbackValues(): void
+    {
+        $kernel = $this->createStub(KernelInterface::class);
+        $kernel->method('getProjectDir')->willReturn($this->projectWithLocalWpBinary());
+        unset($_SERVER['HTTP_HOST'], $_SERVER['SERVER_NAME']);
+        $previousHost = getenv('HTTP_HOST');
+        $previousName = getenv('SERVER_NAME');
+        putenv('HTTP_HOST=shop.example.test:8443');
+        putenv('SERVER_NAME=https://unsafe.example');
+        $output = new BufferedOutput();
+        try {
+            self::assertSame(7, (new WpCliRunner($kernel))->run(['cli', 'info'], $output));
+            self::assertStringContainsString("shop.example.test:8443|localhost\n", $output->fetch());
+        } finally {
+            $previousHost === false ? putenv('HTTP_HOST') : putenv('HTTP_HOST=' . $previousHost);
+            $previousName === false ? putenv('SERVER_NAME') : putenv('SERVER_NAME=' . $previousName);
+        }
+    }
+
+    public function testItPassesShellMetacharactersLiterallyWithoutDuplicatingNoColor(): void
+    {
+        $projectDirectory = $this->projectWithLocalWpBinary();
+        $marker = $projectDirectory . '/shell-must-not-run';
+        $arguments = ['option', 'get', 'value with spaces; $(touch ' . $marker . ')', '--no-color'];
+        $kernel = $this->createStub(KernelInterface::class);
+        $kernel->method('getProjectDir')->willReturn($projectDirectory);
+        $output = new BufferedOutput();
+        self::assertSame(7, (new WpCliRunner($kernel))->run($arguments, $output));
+        self::assertStringContainsString(json_encode($arguments, JSON_THROW_ON_ERROR), $output->fetch());
+        self::assertFileDoesNotExist($marker);
+    }
+
     public function testItReturnsFailureWhenNoWpBinaryCanBeStarted(): void
     {
         $this->projectDirectory = sys_get_temp_dir() . '/sympress_wp_cli_project_' . bin2hex(random_bytes(8));
