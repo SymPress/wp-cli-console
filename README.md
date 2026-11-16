@@ -73,7 +73,7 @@ This package is licensed under `GPL-2.0-or-later`.
 ## Release archives
 
 The archive workflow and archive check use the reviewed reusable workflow commit
-`177fa0d727b278d2103052ec77c102b4a4c492a0`. Releases install production Composer
+`2ebe47e2bc6d402c172015b64c0f5a9f2bf0c322`. Releases install production Composer
 dependencies and include the artifact manifest and checksums. Tests, development
 documentation, QA configuration and coverage output are excluded. Source ZIPs
 also use `.gitattributes` export exclusions. Artifact attestation remains disabled.
