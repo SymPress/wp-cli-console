@@ -7,6 +7,9 @@ namespace SymPress\WpCliConsole\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\BufferedOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
+use Symfony\Component\Console\Output\ConsoleSectionOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use SymPress\Kernel\Kernel\KernelInterface;
 use SymPress\WpCliConsole\Application\WpCliRunner;
 
@@ -176,12 +179,58 @@ PHP);
         self::assertSame('', $output->fetch());
     }
 
-    private function projectWithLocalWpBinary(): string
+    public function testItPassesWpCliOutputThroughWithoutConsoleFormatting(): void
+    {
+        $json = '{"pattern":"\\\\<b>","note":"<info>kept</info> <error>x</error> <href=https://example.test>link</>"}';
+        $projectDirectory = $this->projectWithLocalWpBinary(sprintf(<<<'PHP'
+#!/usr/bin/env php
+<?php
+
+fwrite(STDOUT, %1$s);
+fwrite(STDERR, %1$s);
+PHP, var_export($json, true)));
+        $kernel = $this->createStub(KernelInterface::class);
+        $kernel->method('getProjectDir')->willReturn($projectDirectory);
+        $runner = new WpCliRunner($kernel);
+
+        $output = new BufferedOutput();
+        self::assertSame(0, $runner->run(['option', 'get', 'x', '--format=json'], $output));
+        self::assertSame($json . $json, $output->fetch());
+
+        $errorOutput = new BufferedOutput();
+        $consoleOutput = new class ($errorOutput) extends BufferedOutput implements ConsoleOutputInterface {
+            public function __construct(private OutputInterface $errorOutput)
+            {
+                parent::__construct();
+            }
+
+            public function getErrorOutput(): OutputInterface
+            {
+                return $this->errorOutput;
+            }
+
+            public function setErrorOutput(OutputInterface $error): void
+            {
+                $this->errorOutput = $error;
+            }
+
+            public function section(): ConsoleSectionOutput
+            {
+                throw new \LogicException('Sections are not used by the runner.');
+            }
+        };
+        self::assertSame(0, $runner->run(['option', 'get', 'x', '--format=json'], $consoleOutput));
+        self::assertSame($json, $consoleOutput->fetch());
+        self::assertSame($json, $errorOutput->fetch());
+        self::assertTrue(json_validate($json));
+    }
+
+    private function projectWithLocalWpBinary(?string $script = null): string
     {
         $this->projectDirectory = sys_get_temp_dir() . '/sympress_wp_cli_' . bin2hex(random_bytes(8));
         mkdir($this->projectDirectory . '/vendor/bin', 0777, true);
         $binary = $this->projectDirectory . '/vendor/bin/wp';
-        file_put_contents($binary, <<<'PHP'
+        file_put_contents($binary, $script ?? <<<'PHP'
 #!/usr/bin/env php
 <?php
 
