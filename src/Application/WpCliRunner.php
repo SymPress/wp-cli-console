@@ -144,20 +144,13 @@ final readonly class WpCliRunner implements WpCliRunnerInterface
         }
     }
 
+    /** WP-CLI output is passed through raw: console markup in it is data, e.g. inside --format=json. */
     private function write(string $type, string $buffer, OutputInterface $output): void
     {
-        if ($type !== 'err') {
-            $output->write($buffer);
-
-            return;
+        if ($type === 'err' && $output instanceof ConsoleOutputInterface) {
+            $output = $output->getErrorOutput();
         }
 
-        if ($output instanceof ConsoleOutputInterface) {
-            $output->getErrorOutput()->write($buffer);
-
-            return;
-        }
-
-        $output->write($buffer);
+        $output->write($buffer, false, OutputInterface::OUTPUT_RAW);
     }
 }
