@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## [1.0.6] - 2026-11-23
+
+- Pass WP-CLI stdout and stderr through unchanged. Console markup such as
+  `<info>` or `\<` in WP-CLI output is no longer interpreted or stripped, so
+  `--format=json` stays valid and stored values cannot style the terminal.
+  Scripts that relied on the stripped output will see WP-CLI's original bytes.
+- Return quietly from the plugin entry file when neither the bundle class nor
+  `vendor/autoload.php` is available, instead of a fatal error.
+- Bundle `sympress/kernel` 1.1.18 and current Symfony 8.1 patch releases in the
+  release archive (the 1.0.5 archive shipped kernel 1.1.13).
+- CI: pin `sympress/workflows` to v1.3.2 and let Dependabot update GitHub
+  Actions pins.
+
 ## [1.0.5] - 2026-11-06
 
 - Use the Symfony 8.1.11 security patches released on November 4.
