@@ -19,5 +19,10 @@ if (!defined('ABSPATH')) {
 }
 
 if (!class_exists(WpCliConsoleBundle::class)) {
+    // A hand-copied MU plugin without vendor/ must not fatal every request.
+    if (!is_file(__DIR__ . '/vendor/autoload.php')) {
+        return;
+    }
+
     require_once __DIR__ . '/vendor/autoload.php';
 }
