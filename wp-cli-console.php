@@ -3,7 +3,7 @@
 /**
  * Plugin Name: WP-CLI Console
  * Description: Symfony Console wrappers for useful WP-CLI workflows.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Requires at least: 6.9
  * Requires PHP: 8.5
  * Author: Brian Schaeffner
