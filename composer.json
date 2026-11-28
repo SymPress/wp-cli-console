@@ -12,7 +12,7 @@
     ],
     "require": {
         "php": "^8.5",
-        "sympress/kernel": "^1.1.1",
+        "sympress/kernel": "^1.1.19",
         "symfony/console": "^8.0"
     },
     "require-dev": {

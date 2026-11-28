@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## [1.0.7] - 2026-11-28
+
+- Update the locked Symfony components to 8.1.12 for the November 25 security advisories.
+
 ## [1.0.6] - 2026-11-23
 
 - Pass WP-CLI stdout and stderr through unchanged. Console markup such as
